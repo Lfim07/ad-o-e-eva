@@ -1,0 +1,197 @@
+/* =====================
+   VARIÁVEIS DE TEMA
+===================== */
+:root {
+  --bg: #111;
+  --panel: #000;
+  --text: #fff;
+  --snake-color: #00ff88;
+  --food-color: #ff3b3b;
+}
+
+/* TEMA NEON */
+body.neon {
+  --bg: #050014;
+  --panel: #0a0025;
+  --snake-color: #00e5ff;
+  --food-color: #ff00ff;
+}
+
+/* TEMA RETRÔ */
+body.retro {
+  --bg: #1b2b1b;
+  --panel: #0f1f0f;
+  --snake-color: #7CFC00;
+  --food-color: #FFD700;
+}
+
+/* =====================
+   RESET
+===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =====================
+   LAYOUT GERAL
+===================== */
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* =====================
+   CONTEÚDO
+===================== */
+.container {
+  text-align: center;
+}
+
+/* =====================
+   HUD FLUTUANTE
+===================== */
+.hud {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+
+  padding: 12px 20px;
+  border-radius: 14px;
+
+  display: flex;
+  gap: 18px;
+  align-items: center;
+
+  box-shadow: 0 0 18px rgba(0,0,0,0.6);
+}
+
+.hud p {
+  font-weight: bold;
+}
+
+/* =====================
+   BOTÃO
+===================== */
+button {
+  margin: 10px 0 15px;
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: bold;
+
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+
+  background: var(--snake-color);
+  color: #000;
+
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* =====================
+   TABULEIRO
+===================== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(20, 20px);
+  grid-template-rows: repeat(20, 20px);
+  gap: 1px;
+
+  margin: 0 auto;
+  padding: 6px;
+
+  background: var(--panel);
+  border-radius: 8px;
+}
+
+/* =====================
+   CÉLULAS
+===================== */
+.grid div {
+  width: 20px;
+  height: 20px;
+  background: #222;
+  border-radius: 3px;
+
+  transition: background-color 0.15s linear,
+              transform 0.1s ease;
+}
+
+/* =====================
+   COBRA
+===================== */
+.snake {
+  background: var(--snake-color);
+  box-shadow: 0 0 6px var(--snake-color);
+  transform: scale(1.05);
+}
+
+/* =====================
+   COMIDA
+===================== */
+.food {
+  background: var(--food-color);
+  box-shadow: 0 0 8px var(--food-color);
+  animation: pulse 0.6s infinite;
+}
+
+/* =====================
+   ANIMAÇÕES
+===================== */
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.grid.game-over {
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0%   { transform: translate(0); }
+  25%  { transform: translate(-4px, 0); }
+  50%  { transform: translate(4px, 0); }
+  75%  { transform: translate(-4px, 0); }
+  100% { transform: translate(0); }
+}
+
+/* =====================
+   RESPONSIVO
+===================== */
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(20, 16px);
+    grid-template-rows: repeat(20, 16px);
+  }
+
+  .grid div {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hud {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+}

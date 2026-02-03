@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Responsividade (ESSENCIAL para mobile) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>🐍 Snake Adão e Eva</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HUD FLUTUANTE -->
+  <div class="hud">
+    <p>Pontuação: <span id="score">0</span></p>
+    <p>Recorde: <span id="highScore">0</span></p>
+    <button id="startBtn" aria-label="Iniciar ou reiniciar o jogo">
+      Start / Restart
+    </button>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="container">
+    <h1>🐍 Snake Adão e Eva</h1>
+
+    <!-- TABULEIRO -->
+    <div class="grid"></div>
+  </main>
+
+  <!-- SONS -->
+  <audio id="eatSound" src="eat.mp3" preload="auto"></audio>
+  <audio id="gameOverSound" src="gameover.mp3" preload="auto"></audio>
+
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
+</body>
+</html>
