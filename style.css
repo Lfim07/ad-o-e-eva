@@ -20,7 +20,7 @@
 }
 
 /* =====================
-   BODY (PC + MOBILE)
+   BODY
 ===================== */
 body {
   min-height: 100vh;
@@ -40,7 +40,7 @@ body {
 ===================== */
 .container {
   text-align: center;
-  padding: 100px 0 180px;
+  padding: 100px 0 60px;
 }
 
 /* =====================
@@ -72,7 +72,7 @@ body {
 }
 
 /* =====================
-   BOTÃO
+   BOTÃO PADRÃO
 ===================== */
 button {
   padding: 8px 18px;
@@ -92,7 +92,7 @@ button:active {
 }
 
 /* =====================
-   TABULEIRO (RESPONSIVO REAL)
+   TABULEIRO
 ===================== */
 .grid {
   width: min(90vw, 420px);
@@ -103,8 +103,8 @@ button:active {
   grid-template-rows: repeat(20, 1fr);
 
   margin: 20px auto;
-
   padding: 6px;
+
   background: radial-gradient(circle, #121212, #000);
   border-radius: 16px;
 
@@ -117,8 +117,6 @@ button:active {
    CÉLULAS
 ===================== */
 .grid div {
-  width: 100%;
-  height: 100%;
   background: #1b1b1b;
   border-radius: 6px;
 }
@@ -140,28 +138,12 @@ button:active {
     inset 0 0 4px rgba(255,255,255,0.25);
 }
 
-/* CABEÇA */
-.snake.head {
-  background: linear-gradient(
-    145deg,
-    #7dffb5,
-    var(--snake-color)
-  );
-
-  border-radius: 9px;
-
-  box-shadow:
-    0 0 14px rgba(0,255,136,1),
-    inset 0 0 6px rgba(255,255,255,0.4);
-}
-
 /* =====================
    COMIDA
 ===================== */
 .food {
   background: radial-gradient(circle, #ff7a7a, #c70000);
   border-radius: 50%;
-
   box-shadow: 0 0 14px rgba(255,60,60,0.95);
 }
 
@@ -173,7 +155,7 @@ button:active {
 }
 
 /* =====================
-   MOBILE AJUSTES
+   MOBILE
 ===================== */
 @media (max-width: 768px) {
   body {
@@ -183,30 +165,30 @@ button:active {
 
   .container {
     padding-top: 90px;
-    padding-bottom: 180px;
+    padding-bottom: 170px;
   }
 
   .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 40;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
   }
 
   .controls .middle {
     display: flex;
-    gap: 34px;
+    gap: 30px;
   }
 
-  .btn {
-    width: 66px;
-    height: 66px;
+  .controls .btn {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     border: none;
 
@@ -221,57 +203,10 @@ button:active {
       inset 0 0 6px rgba(255,255,255,0.1);
   }
 
-  .btn:active {
+  .controls .btn:active {
     background: var(--snake-color);
     color: #000;
     transform: scale(0.9);
     box-shadow: 0 0 18px rgba(0,255,136,1);
   }
-}
-/* =====================
-   CONTROLES MOBILE
-===================== */
-.controls {
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-
-  user-select: none;
-}
-
-.controls .middle {
-  display: flex;
-  gap: 16px;
-}
-
-/* =====================
-   BOTÕES DIRECIONAIS
-===================== */
-.controls .btn {
-  width: 56px;
-  height: 56px;
-
-  border-radius: 50%;
-  border: none;
-
-  font-size: 20px;
-  font-weight: bold;
-
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-
-  backdrop-filter: blur(6px);
-  box-shadow:
-    0 4px 10px rgba(0,0,0,0.6),
-    inset 0 0 6px rgba(255,255,255,0.1);
-
-  touch-action: manipulation;
-}
-
-.controls .btn:active {
-  transform: scale(0.92);
-  background: var(--snake-color);
-  color: #000;
 }
