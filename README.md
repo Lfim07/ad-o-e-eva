@@ -26,8 +26,8 @@ Um jogo clássico da cobrinha desenvolvido com **HTML, CSS e JavaScript puro**, 
 ## 🛠️ Tecnologias Utilizadas
 
 - **HTML5** — Estrutura do jogo
-- **CSS3** — Estilização, temas, animações e responsividade
-- **JavaScript (Vanilla)** — Lógica do jogo e controle de estados
+- **CSS** — Estilização, temas, animações e responsividade
+- **JavaScript** — Lógica do jogo e controle de estados
 
 > Nenhuma biblioteca externa foi utilizada.
 
