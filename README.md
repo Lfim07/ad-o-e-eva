@@ -1,4 +1,4 @@
-# 🐍 Snake Game – Web
+# 🐍 Snake adão e Eva – Web
 
 Um jogo clássico da cobrinha desenvolvido com **HTML, CSS e JavaScript puro**, com foco em código limpo, performance e experiência do usuário — desktop e mobile.
 
