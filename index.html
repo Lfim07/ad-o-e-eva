@@ -2,12 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-
-  <!-- Responsividade (ESSENCIAL para mobile) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>🐍 Snake Adão e Eva</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,6 +23,16 @@
 
     <!-- TABULEIRO -->
     <div class="grid"></div>
+
+    <!-- CONTROLES MOBILE -->
+    <div class="controls">
+      <button class="btn up" aria-label="Mover para cima">▲</button>
+      <div class="middle">
+        <button class="btn left" aria-label="Mover para esquerda">◀</button>
+        <button class="btn right" aria-label="Mover para direita">▶</button>
+      </div>
+      <button class="btn down" aria-label="Mover para baixo">▼</button>
+    </div>
   </main>
 
   <!-- SONS -->

@@ -187,3 +187,29 @@ startBtn.addEventListener('click', startGame);
 
 // ================== INIT ==================
 createGrid();
+
+// ================== CONTROLES POR BOTÃO (MOBILE) ==================
+const btnUp = document.querySelector('.btn.up');
+const btnDown = document.querySelector('.btn.down');
+const btnLeft = document.querySelector('.btn.left');
+const btnRight = document.querySelector('.btn.right');
+
+function bindButton(button, newDir, oppositeDir) {
+  button.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (direction !== oppositeDir) {
+      nextDirection = newDir;
+    }
+  });
+
+  button.addEventListener('mousedown', () => {
+    if (direction !== oppositeDir) {
+      nextDirection = newDir;
+    }
+  });
+}
+
+bindButton(btnUp, -GRID_SIZE, GRID_SIZE);
+bindButton(btnDown, GRID_SIZE, -GRID_SIZE);
+bindButton(btnLeft, -1, 1);
+bindButton(btnRight, 1, -1);
