@@ -10,6 +10,7 @@ const gameOverSound = document.getElementById('gameOverSound');
 // ================== CONFIG ==================
 const GRID_SIZE = 20;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+const SWIPE_THRESHOLD = 30;
 
 let squares = [];
 let snake = [];
@@ -37,7 +38,7 @@ function createGrid() {
   }
 }
 
-// ================== JOGO ==================
+// ================== START / RESET ==================
 function startGame() {
   clearInterval(gameInterval);
 
@@ -59,7 +60,7 @@ function startGame() {
   gameInterval = setInterval(gameLoop, speed);
 }
 
-// ================== LOOP ==================
+// ================== GAME LOOP ==================
 function gameLoop() {
   direction = nextDirection;
 
@@ -146,26 +147,39 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
 });
 
-// ================== CONTROLES (TOUCH) ==================
-let touchX = 0;
-let touchY = 0;
+// ================== CONTROLES (TOUCH PROFISSIONAL) ==================
+let touchStartX = 0;
+let touchStartY = 0;
+let isSwiping = false;
 
-document.addEventListener('touchstart', e => {
-  touchX = e.touches[0].clientX;
-  touchY = e.touches[0].clientY;
-});
+grid.addEventListener('touchstart', e => {
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  isSwiping = true;
+}, { passive: true });
 
-document.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchX;
-  const dy = e.changedTouches[0].clientY - touchY;
+grid.addEventListener('touchend', e => {
+  if (!isSwiping) return;
+
+  const touch = e.changedTouches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+
+  if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) {
+    isSwiping = false;
+    return;
+  }
 
   if (Math.abs(dx) > Math.abs(dy)) {
     if (dx > 0 && direction !== -1) nextDirection = 1;
-    if (dx < 0 && direction !== 1) nextDirection = -1;
+    else if (dx < 0 && direction !== 1) nextDirection = -1;
   } else {
     if (dy > 0 && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
-    if (dy < 0 && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
+    else if (dy < 0 && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
   }
+
+  isSwiping = false;
 });
 
 // ================== BOTÃO ==================
