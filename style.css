@@ -3,7 +3,7 @@
 ===================== */
 .controls {
   position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
@@ -14,15 +14,16 @@
   gap: 14px;
 
   user-select: none;
+  pointer-events: auto;
 }
 
 /* =====================
-   MOBILE
+   MOBILE (LARGURA)
 ===================== */
 @media (max-width: 768px) {
   body {
     align-items: flex-start;
-    touch-action: none;
+    touch-action: manipulation; /* ← CORREÇÃO CRÍTICA */
   }
 
   .container {
@@ -40,20 +41,22 @@
   }
 
   .controls .btn {
-    width: 54px;
-    height: 54px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     border: none;
 
     font-size: 24px;
     font-weight: bold;
 
-    background: rgba(0,0,0,0.8);
-    color: white;
+    background: rgba(0,0,0,0.85);
+    color: #fff;
 
     box-shadow:
       0 0 16px rgba(0,0,0,0.9),
-      inset 0 0 6px rgba(255,255,255,0.1);
+      inset 0 0 6px rgba(255,255,255,0.12);
+
+    touch-action: manipulation;
   }
 
   .controls .btn:active {
@@ -64,10 +67,12 @@
   }
 }
 
-/* TELAS BAIXAS */
+/* =====================
+   TELAS BAIXAS
+===================== */
 @media (max-height: 700px) {
   .controls {
-    bottom: calc(10px + env(safe-area-inset-bottom));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%) scale(0.9);
   }
 }
