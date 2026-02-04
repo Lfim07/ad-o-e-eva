@@ -1,38 +1,184 @@
 /* =====================
-   CONTROLES (GLOBAL)
+   VARIÁVEIS DE TEMA
 ===================== */
-.controls {
+:root {
+  --bg: #0e0e0e;
+  --panel: #000;
+  --text: #fff;
+  --snake-color: #00ff88;
+  --snake-dark: #00cc6f;
+  --food-color: #ff3b3b;
+}
+
+/* =====================
+   RESET
+===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* =====================
+   BODY
+===================== */
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #151515, #000);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overscroll-behavior: none;
+}
+
+/* =====================
+   CONTAINER
+===================== */
+.container {
+  text-align: center;
+  padding: 100px 0 60px;
+}
+
+/* =====================
+   HUD
+===================== */
+.hud {
   position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
 
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
 
-  user-select: none;
-  pointer-events: auto;
+  padding: 12px 18px;
+  border-radius: 14px;
+
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  box-shadow: 0 0 18px rgba(0,0,0,0.8);
+}
+
+.hud p {
+  font-size: 14px;
+  font-weight: bold;
 }
 
 /* =====================
-   MOBILE (LARGURA)
+   BOTÃO PADRÃO
+===================== */
+button {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: bold;
+
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  background: var(--snake-color);
+  color: #000;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* =====================
+   TABULEIRO
+===================== */
+.grid {
+  width: min(90vw, 420px);
+  aspect-ratio: 1 / 1;
+
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+
+  margin: 20px auto;
+  padding: 6px;
+
+  background: radial-gradient(circle, #121212, #000);
+  border-radius: 16px;
+
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.9),
+    0 0 28px rgba(0,0,0,0.9);
+}
+
+/* =====================
+   CÉLULAS
+===================== */
+.grid div {
+  background: #1b1b1b;
+  border-radius: 6px;
+}
+
+/* =====================
+   COBRA
+===================== */
+.snake {
+  background: linear-gradient(
+    145deg,
+    var(--snake-color),
+    var(--snake-dark)
+  );
+
+  border-radius: 7px;
+
+  box-shadow:
+    0 0 8px rgba(0,255,136,0.9),
+    inset 0 0 4px rgba(255,255,255,0.25);
+}
+
+/* =====================
+   COMIDA
+===================== */
+.food {
+  background: radial-gradient(circle, #ff7a7a, #c70000);
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgba(255,60,60,0.95);
+}
+
+/* =====================
+   CONTROLES MOBILE
+===================== */
+.controls {
+  display: none;
+}
+
+/* =====================
+   MOBILE
 ===================== */
 @media (max-width: 768px) {
   body {
     align-items: flex-start;
-    touch-action: manipulation; /* ← CORREÇÃO CRÍTICA */
+    touch-action: none;
   }
 
   .container {
     padding-top: 90px;
-    padding-bottom: 180px;
+    padding-bottom: 170px;
   }
 
   .controls {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
   }
 
   .controls .middle {
@@ -49,14 +195,12 @@
     font-size: 24px;
     font-weight: bold;
 
-    background: rgba(0,0,0,0.85);
-    color: #fff;
+    background: rgba(0,0,0,0.8);
+    color: white;
 
     box-shadow:
       0 0 16px rgba(0,0,0,0.9),
-      inset 0 0 6px rgba(255,255,255,0.12);
-
-    touch-action: manipulation;
+      inset 0 0 6px rgba(255,255,255,0.1);
   }
 
   .controls .btn:active {
@@ -67,12 +211,3 @@
   }
 }
 
-/* =====================
-   TELAS BAIXAS
-===================== */
-@media (max-height: 700px) {
-  .controls {
-    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%) scale(0.9);
-  }
-}
