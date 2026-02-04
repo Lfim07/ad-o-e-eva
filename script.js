@@ -117,7 +117,7 @@ function eat() {
   }
 
   // aceleração progressiva
-  speed = Math.max(60, speed - 10);
+  speed = Math.max(60, speed - 7);
   clearInterval(gameInterval);
   gameInterval = setInterval(gameLoop, speed);
 
