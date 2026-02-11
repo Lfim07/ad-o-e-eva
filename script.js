@@ -1,267 +1,278 @@
-// ================= CONFIGURAÇÃO =================
-const GRID_SIZE = 20;
-const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
+document.addEventListener('DOMContentLoaded', () => {
 
-// ================= ELEMENTOS =================
-const grid = document.querySelector('.grid');
-const scoreEl = document.getElementById('score');
-const startBtn = document.getElementById('startBtn');
+  /* =====================
+     ELEMENTOS
+  ===================== */
+  const intro = document.getElementById('introScreen');
+  const startIntroBtn = document.getElementById('startIntroBtn');
 
-// HUD de status
-const statusHud = document.createElement('div');
-statusHud.className = 'status-hud';
-document.body.appendChild(statusHud);
+  const grid = document.querySelector('.grid');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const restartBtn = document.getElementById('startBtn');
 
-// ================= ESTADO =================
-let squares = [];
-let snake = [];
-let direction = 1;
-let nextDirection = 1;
+  const statusHud = document.createElement('div');
+  statusHud.className = 'status-hud';
+  document.body.appendChild(statusHud);
 
-let score = 0;
-let speed = 200;
-let baseSpeed = 200;
+  /* =====================
+     CONFIGURAÇÕES
+  ===================== */
+  const GRID_SIZE = 20;
+  const TOTAL = GRID_SIZE * GRID_SIZE;
+  const FREEZE_TIME = 10000; // 10 segundos
 
-let foodIndex = null;
-let obstacles = [];
+  const STORY = [
+    { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 350, unlockScore: 0 },
+    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 100, unlockScore: 10 },
+    { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 120, unlockScore: 25 }
+  ];
 
-let running = false;
-let frozen = false;
-let immune = false;
+  /* =====================
+     VARIÁVEIS
+  ===================== */
+  let squares = [];
+  let snake = [];
+  let direction = 1;
+  let nextDirection = 1;
 
-let currentLevel = 1;
+  let foodIndex = 0;
+  let score = 0;
+  let highScore = Number(localStorage.getItem('highScore')) || 0;
 
-// ================= RAF =================
-let lastTime = 0;
-let accumulator = 0;
+  let speed = 180;
+  let baseSpeed = 180;
 
-// ================= GRID =================
-function createGrid() {
-  grid.innerHTML = '';
-  squares = [];
+  let lastTime = 0;
+  let accumulator = 0;
 
-  for (let i = 0; i < TOTAL_CELLS; i++) {
-    const div = document.createElement('div');
-    grid.appendChild(div);
-    squares.push(div);
+  let running = false;
+  let paused = false;
+  let frozen = false;
+
+  let currentChapter = 0;
+
+  highScoreEl.textContent = highScore;
+
+  /* =====================
+     GRID
+  ===================== */
+  function createGrid() {
+    grid.innerHTML = '';
+    squares = [];
+    for (let i = 0; i < TOTAL; i++) {
+      const div = document.createElement('div');
+      grid.appendChild(div);
+      squares.push(div);
+    }
   }
-}
 
-// ================= START =================
-function startGame() {
-  score = 0;
-  direction = 1;
-  nextDirection = 1;
-  currentLevel = 1;
+  /* =====================
+     START
+  ===================== */
+  function startGame() {
+    createGrid();
 
-  speed = 200;
-  baseSpeed = speed;
+    snake = [45, 44, 43];
+    direction = 1;
+    nextDirection = 1;
 
-  frozen = false;
-  immune = false;
-  running = true;
+    score = 0;
+    scoreEl.textContent = score;
 
-  lastTime = 0;
-  accumulator = 0;
+    squares.forEach(c => c.className = '');
+    snake.forEach(i => squares[i].classList.add('snake'));
 
-  statusHud.textContent = '';
+    currentChapter = 0;
+    applyChapter();
 
-  squares.forEach(c =>
-    c.classList.remove('snake', 'food', 'obstacle', 'frozen', 'immune')
-  );
+    generateFood();
 
-  snake = [45, 44, 43];
-  snake.forEach(i => squares[i].classList.add('snake'));
+    running = true;
+    paused = false;
+    frozen = false;
 
-  obstacles = [];
-  generateObstacles(6);
-  generateFood();
-
-  requestAnimationFrame(gameLoop);
-}
-
-// ================= GAME LOOP =================
-function gameLoop(time) {
-  if (!running) return;
-
-  if (!lastTime) lastTime = time;
-  const delta = time - lastTime;
-  lastTime = time;
-  accumulator += delta;
-
-  if (accumulator >= speed && !frozen) {
-    updateSnake();
+    lastTime = 0;
     accumulator = 0;
+
+    requestAnimationFrame(loop);
   }
 
-  requestAnimationFrame(gameLoop);
-}
+  /* =====================
+     LOOP
+  ===================== */
+  function loop(time) {
+    if (!running) return;
 
-// ================= UPDATE =================
-function updateSnake() {
-  if (frozen) return; // blindagem extra contra bug
+    if (paused || frozen) {
+      lastTime = time;
+      requestAnimationFrame(loop);
+      return;
+    }
 
-  // direção suave
-  if (
-    (direction === 1 && nextDirection !== -1) ||
-    (direction === -1 && nextDirection !== 1) ||
-    (direction === GRID_SIZE && nextDirection !== -GRID_SIZE) ||
-    (direction === -GRID_SIZE && nextDirection !== GRID_SIZE)
-  ) {
+    const delta = time - lastTime;
+    lastTime = time;
+    accumulator += delta;
+
+    while (accumulator >= speed) {
+      update();
+      accumulator -= speed;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  /* =====================
+     UPDATE
+  ===================== */
+  function update() {
+    move();
+    checkStoryProgress();
+  }
+
+  /* =====================
+     MOVIMENTO
+  ===================== */
+  function move() {
     direction = nextDirection;
-  }
+    const head = snake[0];
+    const newHead = head + direction;
 
-  const head = snake[0];
-  const newHead = head + direction;
-
-  // colisão fatal (ignora se estiver imune)
-  if (!immune && isCollision(head, newHead)) {
-    endGame();
-    return;
-  }
-
-  // colisão com obstáculo
-  if (obstacles.includes(newHead)) {
-    if (currentLevel >= 2) {
-      consumeObstacle(newHead);
-      triggerObstacleEffect();
+    if (
+      newHead < 0 ||
+      newHead >= TOTAL ||
+      snake.includes(newHead) ||
+      (head % GRID_SIZE === GRID_SIZE - 1 && direction === 1) ||
+      (head % GRID_SIZE === 0 && direction === -1)
+    ) {
+      gameOver();
       return;
+    }
+
+    snake.unshift(newHead);
+    squares[newHead].classList.add('snake');
+
+    if (newHead === foodIndex) {
+      eat();
     } else {
-      endGame();
-      return;
+      const tail = snake.pop();
+      squares[tail].classList.remove('snake');
     }
   }
 
-  snake.unshift(newHead);
-  squares[newHead].classList.add('snake');
-
-  if (newHead === foodIndex) {
-    eat();
-  } else {
-    const tail = snake.pop();
-    squares[tail].classList.remove('snake');
+  /* =====================
+     COMIDA
+  ===================== */
+  function generateFood() {
+    do {
+      foodIndex = Math.floor(Math.random() * TOTAL);
+    } while (snake.includes(foodIndex));
+    squares[foodIndex].classList.add('food');
   }
-}
 
-// ================= COLISÃO FATAL =================
-function isCollision(head, newHead) {
-  return (
-    (head % GRID_SIZE === GRID_SIZE - 1 && direction === 1) ||
-    (head % GRID_SIZE === 0 && direction === -1) ||
-    (head < GRID_SIZE && direction === -GRID_SIZE) ||
-    (head >= TOTAL_CELLS - GRID_SIZE && direction === GRID_SIZE) ||
-    snake.includes(newHead)
-  );
-}
+  function eat() {
+    squares[foodIndex].classList.remove('food');
+    score++;
+    scoreEl.textContent = score;
 
-// ================= COMIDA =================
-function generateFood() {
-  do {
-    foodIndex = Math.floor(Math.random() * TOTAL_CELLS);
-  } while (snake.includes(foodIndex) || obstacles.includes(foodIndex));
+    if (score % 5 === 0) {
+      triggerFreeze();
+    }
 
-  squares[foodIndex].classList.add('food');
-}
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('highScore', highScore);
+      highScoreEl.textContent = highScore;
+    }
 
-function eat() {
-  squares[foodIndex].classList.remove('food');
-  score++;
+    generateFood();
+  }
 
-  // progressão de level
-  if (score === 5) currentLevel = 2;
-  if (score === 12) currentLevel = 3;
+  /* =====================
+     CONGELAMENTO
+  ===================== */
+  function triggerFreeze() {
+    frozen = true;
+    statusHud.textContent = '🧊 Congelado por 10 segundos';
 
-  generateFood();
-}
+    snake.forEach(i => squares[i].classList.add('frozen'));
 
-// ================= OBSTÁCULOS =================
-function generateObstacles(amount) {
-  obstacles.forEach(i => squares[i].classList.remove('obstacle'));
-  obstacles = [];
+    setTimeout(() => {
+      snake.forEach(i => squares[i].classList.remove('frozen'));
+      frozen = false;
+      applyRandomSpeed();
+    }, FREEZE_TIME);
+  }
 
-  while (obstacles.length < amount) {
-    const index = Math.floor(Math.random() * TOTAL_CELLS);
-    if (!snake.includes(index)) {
-      obstacles.push(index);
-      squares[index].classList.add('obstacle');
+  function applyRandomSpeed() {
+    const faster = Math.random() < 0.5;
+
+    if (faster) {
+      speed = baseSpeed * 0.6;
+      statusHud.textContent = '⚡ A serpente acelerou!';
+    } else {
+      speed = baseSpeed * 1.6;
+      statusHud.textContent = '🐢 A serpente ficou lenta!';
+    }
+
+    setTimeout(() => {
+      speed = baseSpeed;
+      statusHud.textContent = '';
+    }, 5000);
+  }
+
+  /* =====================
+     HISTÓRIA
+  ===================== */
+  function checkStoryProgress() {
+    if (
+      currentChapter < STORY.length - 1 &&
+      score >= STORY[currentChapter + 1].unlockScore
+    ) {
+      currentChapter++;
+      applyChapter();
     }
   }
-}
 
-// obstáculo vira consumível
-function consumeObstacle(index) {
-  obstacles = obstacles.filter(o => o !== index);
-  squares[index].classList.remove('obstacle');
-}
-
-// ================= EFEITO DO OBSTÁCULO =================
-function triggerObstacleEffect() {
-  if (frozen) return;
-
-  frozen = true;
-  baseSpeed = speed;
-
-  let countdown = 10;
-  statusHud.textContent = `🧊 Congelado: ${countdown}`;
-
-  // animação de gelo
-  snake.forEach(i => squares[i].classList.add('frozen'));
-
-  const freezeTimer = setInterval(() => {
-    countdown--;
-    statusHud.textContent = `🧊 Congelado: ${countdown}`;
-
-    if (countdown <= 0) {
-      clearInterval(freezeTimer);
-      unfreeze();
-    }
-  }, 1000);
-}
-
-// descongela + sorteia efeito
-function unfreeze() {
-  frozen = false;
-  snake.forEach(i => squares[i].classList.remove('frozen'));
-
-  const fast = Math.random() < 0.5;
-  statusHud.textContent = fast ? '⚡ Velocidade Máxima!' : '🐢 Velocidade Reduzida';
-
-  speed = fast ? Math.max(60, baseSpeed * 0.4) : baseSpeed * 2;
-
-  activateImmunity();
-
-  setTimeout(() => {
+  function applyChapter() {
+    const chapter = STORY[currentChapter];
+    document.body.setAttribute('data-theme', chapter.theme);
+    baseSpeed = chapter.speed;
     speed = baseSpeed;
-    statusHud.textContent = '';
-  }, 60000);
-}
 
-// ================= IMUNIDADE =================
-function activateImmunity() {
-  immune = true;
-  snake.forEach(i => squares[i].classList.add('immune'));
+    statusHud.textContent = `${chapter.title} — ${chapter.text}`;
+    setTimeout(() => statusHud.textContent = '', 3000);
+  }
 
-  setTimeout(() => {
-    immune = false;
-    snake.forEach(i => squares[i].classList.remove('immune'));
-  }, 3000); // 3s de imunidade
-}
+  /* =====================
+     GAME OVER
+  ===================== */
+  function gameOver() {
+    running = false;
+    statusHud.textContent = '💀 A queda foi inevitável';
+  }
 
-// ================= GAME OVER =================
-function endGame() {
-  running = false;
-  statusHud.textContent = '💀 Game Over';
-}
+  /* =====================
+     CONTROLES
+  ===================== */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' && direction !== -1) nextDirection = 1;
+    if (e.key === 'ArrowLeft' && direction !== 1) nextDirection = -1;
+    if (e.key === 'ArrowUp' && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
+    if (e.key === 'ArrowDown' && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
+    if (e.key === ' ') paused = !paused;
+  });
 
-// ================= CONTROLES =================
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') nextDirection = 1;
-  if (e.key === 'ArrowLeft') nextDirection = -1;
-  if (e.key === 'ArrowUp') nextDirection = -GRID_SIZE;
-  if (e.key === 'ArrowDown') nextDirection = GRID_SIZE;
+  pauseBtn.addEventListener('click', () => paused = !paused);
+  restartBtn.addEventListener('click', startGame);
+
+  /* =====================
+     INTRO
+  ===================== */
+  startIntroBtn.addEventListener('click', () => {
+    intro.style.display = 'none';
+    startGame();
+  });
+
 });
-
-startBtn.addEventListener('click', startGame);
-
-// ================= INIT =================
-createGrid();

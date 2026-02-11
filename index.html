@@ -1,47 +1,44 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🐍 Snake Adão e Eva</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>🐍 Snake: Adão e Eva</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+<body>
 
-<body data-theme="eden">
+  <!-- INTRO / LORE -->
+  <div id="introScreen" class="intro">
+    <h1>🐍 Snake: Adão e Eva</h1>
 
-  <!-- HUD FLUTUANTE -->
-  <div class="hud">
-    <p>Pontuação: <span id="score">0</span></p>
-    <p>Recorde: <span id="highScore">0</span></p>
-    <button id="startBtn" aria-label="Iniciar ou reiniciar o jogo">
-      Start / Restart
-    </button>
+    <p>
+      A serpente rasteja pelo Éden.<br>
+      Cada fruto traz sabedoria… ou queda.<br>
+      A partir da tentação, nada será simples.
+    </p>
+
+    <button id="startIntroBtn">Iniciar Jornada</button>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="container">
-    <h1>🐍 Snake Adão e Eva</h1>
+  <!-- HUD -->
+  <div class="top-bar">
+    Pontuação: <span id="score">0</span> |
+    Recorde: <span id="highScore">0</span>
+    <button id="pauseBtn">⏸</button>
+  </div>
 
-    <!-- TABULEIRO -->
-    <div class="grid"></div>
+  <!-- GRID -->
+  <div class="grid"></div>
 
-    <!-- CONTROLES MOBILE -->
-    <div class="controls">
-      <button class="btn up" aria-label="Mover para cima">▲</button>
-      <div class="middle">
-        <button class="btn left" aria-label="Mover para esquerda">◀</button>
-        <button class="btn right" aria-label="Mover para direita">▶</button>
-      </div>
-      <button class="btn down" aria-label="Mover para baixo">▼</button>
-    </div>
-  </main>
+  <!-- CONTROLES -->
+  <button id="startBtn" class="start-btn">Reiniciar</button>
 
-  <!-- SONS -->
-  <audio id="eatSound" src="eat.mp3" preload="auto"></audio>
-  <audio id="gameOverSound" src="gameover.mp3" preload="auto"></audio>
+  <!-- MÚSICAS -->
+  <audio id="music1" src="eden.mp3" loop></audio>
+  <audio id="music2" src="temptation.mp3" loop></audio>
+  <audio id="music3" src="fall.mp3" loop></audio>
+  <audio id="music4" src="exile.mp3" loop></audio>
 
-  <!-- SCRIPT -->
-  <script src="script.js" defer></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
