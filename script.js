@@ -1,17 +1,18 @@
-// ================== ELEMENTOS ==================
-const grid = document.querySelector('.grid');
-const scoreEl = document.getElementById('score');
-const highScoreEl = document.getElementById('highScore');
-const startBtn = document.getElementById('startBtn');
-
-const eatSound = document.getElementById('eatSound');
-const gameOverSound = document.getElementById('gameOverSound');
-
-// ================== CONFIG ==================
+// ================= CONFIGURAÇÃO =================
 const GRID_SIZE = 20;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
-const SWIPE_THRESHOLD = 30;
 
+// ================= ELEMENTOS =================
+const grid = document.querySelector('.grid');
+const scoreEl = document.getElementById('score');
+const startBtn = document.getElementById('startBtn');
+
+// HUD de status
+const statusHud = document.createElement('div');
+statusHud.className = 'status-hud';
+document.body.appendChild(statusHud);
+
+// ================= ESTADO =================
 let squares = [];
 let snake = [];
 let direction = 1;
@@ -19,57 +20,116 @@ let nextDirection = 1;
 
 let score = 0;
 let speed = 200;
-let gameInterval = null;
+let baseSpeed = 200;
+
 let foodIndex = null;
+let obstacles = [];
 
-// ================== RANKING ==================
-let highScore = Number(localStorage.getItem('highScore')) || 0;
-highScoreEl.textContent = highScore;
+let running = false;
+let frozen = false;
+let immune = false;
 
-// ================== TABULEIRO ==================
+let currentLevel = 1;
+
+// ================= RAF =================
+let lastTime = 0;
+let accumulator = 0;
+
+// ================= GRID =================
 function createGrid() {
   grid.innerHTML = '';
   squares = [];
 
   for (let i = 0; i < TOTAL_CELLS; i++) {
-    const cell = document.createElement('div');
-    grid.appendChild(cell);
-    squares.push(cell);
+    const div = document.createElement('div');
+    grid.appendChild(div);
+    squares.push(div);
   }
 }
 
-// ================== START / RESET ==================
+// ================= START =================
 function startGame() {
-  clearInterval(gameInterval);
-
   score = 0;
-  speed = 200;
   direction = 1;
   nextDirection = 1;
+  currentLevel = 1;
 
-  scoreEl.textContent = score;
+  speed = 200;
+  baseSpeed = speed;
 
-  squares.forEach(cell =>
-    cell.classList.remove('snake', 'food')
+  frozen = false;
+  immune = false;
+  running = true;
+
+  lastTime = 0;
+  accumulator = 0;
+
+  statusHud.textContent = '';
+
+  squares.forEach(c =>
+    c.classList.remove('snake', 'food', 'obstacle', 'frozen', 'immune')
   );
 
   snake = [45, 44, 43];
   snake.forEach(i => squares[i].classList.add('snake'));
 
+  obstacles = [];
+  generateObstacles(6);
   generateFood();
-  gameInterval = setInterval(gameLoop, speed);
+
+  requestAnimationFrame(gameLoop);
 }
 
-// ================== GAME LOOP ==================
-function gameLoop() {
-  direction = nextDirection;
+// ================= GAME LOOP =================
+function gameLoop(time) {
+  if (!running) return;
+
+  if (!lastTime) lastTime = time;
+  const delta = time - lastTime;
+  lastTime = time;
+  accumulator += delta;
+
+  if (accumulator >= speed && !frozen) {
+    updateSnake();
+    accumulator = 0;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ================= UPDATE =================
+function updateSnake() {
+  if (frozen) return; // blindagem extra contra bug
+
+  // direção suave
+  if (
+    (direction === 1 && nextDirection !== -1) ||
+    (direction === -1 && nextDirection !== 1) ||
+    (direction === GRID_SIZE && nextDirection !== -GRID_SIZE) ||
+    (direction === -GRID_SIZE && nextDirection !== GRID_SIZE)
+  ) {
+    direction = nextDirection;
+  }
 
   const head = snake[0];
   const newHead = head + direction;
 
-  if (isCollision(head, newHead)) {
+  // colisão fatal (ignora se estiver imune)
+  if (!immune && isCollision(head, newHead)) {
     endGame();
     return;
+  }
+
+  // colisão com obstáculo
+  if (obstacles.includes(newHead)) {
+    if (currentLevel >= 2) {
+      consumeObstacle(newHead);
+      triggerObstacleEffect();
+      return;
+    } else {
+      endGame();
+      return;
+    }
   }
 
   snake.unshift(newHead);
@@ -83,7 +143,7 @@ function gameLoop() {
   }
 }
 
-// ================== COLISÃO ==================
+// ================= COLISÃO FATAL =================
 function isCollision(head, newHead) {
   return (
     (head % GRID_SIZE === GRID_SIZE - 1 && direction === 1) ||
@@ -94,122 +154,114 @@ function isCollision(head, newHead) {
   );
 }
 
-// ================== COMIDA ==================
+// ================= COMIDA =================
 function generateFood() {
   do {
     foodIndex = Math.floor(Math.random() * TOTAL_CELLS);
-  } while (snake.includes(foodIndex));
+  } while (snake.includes(foodIndex) || obstacles.includes(foodIndex));
 
   squares[foodIndex].classList.add('food');
 }
 
 function eat() {
   squares[foodIndex].classList.remove('food');
-  playSound(eatSound);
-
   score++;
-  scoreEl.textContent = score;
 
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('highScore', highScore);
-    highScoreEl.textContent = highScore;
-  }
-
-  // aceleração progressiva
-  speed = Math.max(60, speed - 5);
-  clearInterval(gameInterval);
-  gameInterval = setInterval(gameLoop, speed);
+  // progressão de level
+  if (score === 5) currentLevel = 2;
+  if (score === 12) currentLevel = 3;
 
   generateFood();
 }
 
-// ================== GAME OVER ==================
+// ================= OBSTÁCULOS =================
+function generateObstacles(amount) {
+  obstacles.forEach(i => squares[i].classList.remove('obstacle'));
+  obstacles = [];
+
+  while (obstacles.length < amount) {
+    const index = Math.floor(Math.random() * TOTAL_CELLS);
+    if (!snake.includes(index)) {
+      obstacles.push(index);
+      squares[index].classList.add('obstacle');
+    }
+  }
+}
+
+// obstáculo vira consumível
+function consumeObstacle(index) {
+  obstacles = obstacles.filter(o => o !== index);
+  squares[index].classList.remove('obstacle');
+}
+
+// ================= EFEITO DO OBSTÁCULO =================
+function triggerObstacleEffect() {
+  if (frozen) return;
+
+  frozen = true;
+  baseSpeed = speed;
+
+  let countdown = 10;
+  statusHud.textContent = `🧊 Congelado: ${countdown}`;
+
+  // animação de gelo
+  snake.forEach(i => squares[i].classList.add('frozen'));
+
+  const freezeTimer = setInterval(() => {
+    countdown--;
+    statusHud.textContent = `🧊 Congelado: ${countdown}`;
+
+    if (countdown <= 0) {
+      clearInterval(freezeTimer);
+      unfreeze();
+    }
+  }, 1000);
+}
+
+// descongela + sorteia efeito
+function unfreeze() {
+  frozen = false;
+  snake.forEach(i => squares[i].classList.remove('frozen'));
+
+  const fast = Math.random() < 0.5;
+  statusHud.textContent = fast ? '⚡ Velocidade Máxima!' : '🐢 Velocidade Reduzida';
+
+  speed = fast ? Math.max(60, baseSpeed * 0.4) : baseSpeed * 2;
+
+  activateImmunity();
+
+  setTimeout(() => {
+    speed = baseSpeed;
+    statusHud.textContent = '';
+  }, 60000);
+}
+
+// ================= IMUNIDADE =================
+function activateImmunity() {
+  immune = true;
+  snake.forEach(i => squares[i].classList.add('immune'));
+
+  setTimeout(() => {
+    immune = false;
+    snake.forEach(i => squares[i].classList.remove('immune'));
+  }, 3000); // 3s de imunidade
+}
+
+// ================= GAME OVER =================
 function endGame() {
-  clearInterval(gameInterval);
-  playSound(gameOverSound);
-
-  grid.classList.add('game-over');
-  setTimeout(() => grid.classList.remove('game-over'), 400);
+  running = false;
+  statusHud.textContent = '💀 Game Over';
 }
 
-// ================== SOM ==================
-function playSound(sound) {
-  sound.currentTime = 0;
-  sound.play();
-}
-
-// ================== CONTROLES (TECLADO) ==================
+// ================= CONTROLES =================
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' && direction !== -1) nextDirection = 1;
-  if (e.key === 'ArrowLeft' && direction !== 1) nextDirection = -1;
-  if (e.key === 'ArrowUp' && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
-  if (e.key === 'ArrowDown' && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
+  if (e.key === 'ArrowRight') nextDirection = 1;
+  if (e.key === 'ArrowLeft') nextDirection = -1;
+  if (e.key === 'ArrowUp') nextDirection = -GRID_SIZE;
+  if (e.key === 'ArrowDown') nextDirection = GRID_SIZE;
 });
 
-// ================== CONTROLES (TOUCH PROFISSIONAL) ==================
-let touchStartX = 0;
-let touchStartY = 0;
-let isSwiping = false;
-
-grid.addEventListener('touchstart', e => {
-  const touch = e.touches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-  isSwiping = true;
-}, { passive: true });
-
-grid.addEventListener('touchend', e => {
-  if (!isSwiping) return;
-
-  const touch = e.changedTouches[0];
-  const dx = touch.clientX - touchStartX;
-  const dy = touch.clientY - touchStartY;
-
-  if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) {
-    isSwiping = false;
-    return;
-  }
-
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0 && direction !== -1) nextDirection = 1;
-    else if (dx < 0 && direction !== 1) nextDirection = -1;
-  } else {
-    if (dy > 0 && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
-    else if (dy < 0 && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
-  }
-
-  isSwiping = false;
-});
-
-// ================== BOTÃO ==================
 startBtn.addEventListener('click', startGame);
 
-// ================== INIT ==================
+// ================= INIT =================
 createGrid();
-
-// ================== CONTROLES POR BOTÃO (MOBILE) ==================
-const btnUp = document.querySelector('.btn.up');
-const btnDown = document.querySelector('.btn.down');
-const btnLeft = document.querySelector('.btn.left');
-const btnRight = document.querySelector('.btn.right');
-
-function bindButton(button, newDir, oppositeDir) {
-  button.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (direction !== oppositeDir) {
-      nextDirection = newDir;
-    }
-  });
-
-  button.addEventListener('mousedown', () => {
-    if (direction !== oppositeDir) {
-      nextDirection = newDir;
-    }
-  });
-}
-
-bindButton(btnUp, -GRID_SIZE, GRID_SIZE);
-bindButton(btnDown, GRID_SIZE, -GRID_SIZE);
-bindButton(btnLeft, -1, 1);
-bindButton(btnRight, 1, -1);
