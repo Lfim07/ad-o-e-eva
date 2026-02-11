@@ -21,11 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
   ===================== */
   const GRID_SIZE = 20;
   const TOTAL = GRID_SIZE * GRID_SIZE;
-  const FREEZE_TIME = 10000; // 10 segundos
+  const FREEZE_TIME = 10000;
 
   const STORY = [
     { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 350, unlockScore: 0 },
-    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 100, unlockScore: 10 },
+    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 150, unlockScore: 10 },
     { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 120, unlockScore: 25 }
   ];
 
@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let score = 0;
   let highScore = Number(localStorage.getItem('highScore')) || 0;
 
-  let speed = 180;
-  let baseSpeed = 180;
+  let baseSpeed = STORY[0].speed;
+  let speed = baseSpeed;
 
   let lastTime = 0;
   let accumulator = 0;
@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let frozen = false;
 
   let currentChapter = 0;
+  let animationId = null;
+
+  let freezeTimeout = null;
+  let speedTimeout = null;
 
   highScoreEl.textContent = highScore;
 
@@ -61,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function createGrid() {
     grid.innerHTML = '';
     squares = [];
+
     for (let i = 0; i < TOTAL; i++) {
       const div = document.createElement('div');
       grid.appendChild(div);
@@ -72,6 +77,23 @@ document.addEventListener('DOMContentLoaded', () => {
      START
   ===================== */
   function startGame() {
+
+    running = false;
+
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+
+    clearTimeout(freezeTimeout);
+    clearTimeout(speedTimeout);
+
+    frozen = false;
+    paused = false;
+
+    accumulator = 0;
+    lastTime = 0;
+
     createGrid();
 
     snake = [45, 44, 43];
@@ -90,29 +112,28 @@ document.addEventListener('DOMContentLoaded', () => {
     generateFood();
 
     running = true;
-    paused = false;
-    frozen = false;
-
-    lastTime = 0;
-    accumulator = 0;
-
-    requestAnimationFrame(loop);
+    animationId = requestAnimationFrame(loop);
   }
 
   /* =====================
-     LOOP
+     LOOP (CORRIGIDO)
   ===================== */
   function loop(time) {
+
     if (!running) return;
+
+    // 🔥 Corrige delta gigante no primeiro frame
+    if (!lastTime) lastTime = time;
 
     if (paused || frozen) {
       lastTime = time;
-      requestAnimationFrame(loop);
+      animationId = requestAnimationFrame(loop);
       return;
     }
 
     const delta = time - lastTime;
     lastTime = time;
+
     accumulator += delta;
 
     while (accumulator >= speed) {
@@ -120,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
       accumulator -= speed;
     }
 
-    requestAnimationFrame(loop);
+    animationId = requestAnimationFrame(loop);
   }
 
   /* =====================
@@ -135,17 +156,21 @@ document.addEventListener('DOMContentLoaded', () => {
      MOVIMENTO
   ===================== */
   function move() {
+
     direction = nextDirection;
+
     const head = snake[0];
     const newHead = head + direction;
 
-    if (
+    const hitWall =
       newHead < 0 ||
       newHead >= TOTAL ||
-      snake.includes(newHead) ||
       (head % GRID_SIZE === GRID_SIZE - 1 && direction === 1) ||
-      (head % GRID_SIZE === 0 && direction === -1)
-    ) {
+      (head % GRID_SIZE === 0 && direction === -1);
+
+    const hitSelf = snake.includes(newHead);
+
+    if (hitWall || hitSelf) {
       gameOver();
       return;
     }
@@ -165,20 +190,25 @@ document.addEventListener('DOMContentLoaded', () => {
      COMIDA
   ===================== */
   function generateFood() {
+
+    // 🔥 Limpa comida anterior por segurança
+    squares.forEach(c => c.classList.remove('food'));
+
     do {
       foodIndex = Math.floor(Math.random() * TOTAL);
     } while (snake.includes(foodIndex));
+
     squares[foodIndex].classList.add('food');
   }
 
   function eat() {
+
     squares[foodIndex].classList.remove('food');
+
     score++;
     scoreEl.textContent = score;
 
-    if (score % 5 === 0) {
-      triggerFreeze();
-    }
+    if (score % 5 === 0) triggerFreeze();
 
     if (score > highScore) {
       highScore = score;
@@ -193,30 +223,42 @@ document.addEventListener('DOMContentLoaded', () => {
      CONGELAMENTO
   ===================== */
   function triggerFreeze() {
+
+    if (!running) return;
+
     frozen = true;
     statusHud.textContent = '🧊 Congelado por 10 segundos';
 
     snake.forEach(i => squares[i].classList.add('frozen'));
 
-    setTimeout(() => {
+    clearTimeout(freezeTimeout);
+
+    freezeTimeout = setTimeout(() => {
+
+      if (!running) return;
+
       snake.forEach(i => squares[i].classList.remove('frozen'));
       frozen = false;
+
       applyRandomSpeed();
+
     }, FREEZE_TIME);
   }
 
   function applyRandomSpeed() {
+
+    if (!running) return;
+
+    clearTimeout(speedTimeout);
+
     const faster = Math.random() < 0.5;
+    speed = faster ? baseSpeed * 0.8 : baseSpeed * 1.3;
 
-    if (faster) {
-      speed = baseSpeed * 0.6;
-      statusHud.textContent = '⚡ A serpente acelerou!';
-    } else {
-      speed = baseSpeed * 1.6;
-      statusHud.textContent = '🐢 A serpente ficou lenta!';
-    }
+    statusHud.textContent =
+      faster ? '⚡ A serpente acelerou!' : '🐢 A serpente ficou lenta!';
 
-    setTimeout(() => {
+    speedTimeout = setTimeout(() => {
+      if (!running) return;
       speed = baseSpeed;
       statusHud.textContent = '';
     }, 5000);
@@ -226,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
      HISTÓRIA
   ===================== */
   function checkStoryProgress() {
+
     if (
       currentChapter < STORY.length - 1 &&
       score >= STORY[currentChapter + 1].unlockScore
@@ -236,20 +279,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyChapter() {
+
     const chapter = STORY[currentChapter];
+
     document.body.setAttribute('data-theme', chapter.theme);
+
     baseSpeed = chapter.speed;
     speed = baseSpeed;
 
     statusHud.textContent = `${chapter.title} — ${chapter.text}`;
-    setTimeout(() => statusHud.textContent = '', 3000);
+
+    setTimeout(() => {
+      if (running) statusHud.textContent = '';
+    }, 3000);
   }
 
   /* =====================
      GAME OVER
   ===================== */
   function gameOver() {
+
     running = false;
+
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+
     statusHud.textContent = '💀 A queda foi inevitável';
   }
 
@@ -257,10 +313,14 @@ document.addEventListener('DOMContentLoaded', () => {
      CONTROLES
   ===================== */
   document.addEventListener('keydown', e => {
+
+    if (!running) return;
+
     if (e.key === 'ArrowRight' && direction !== -1) nextDirection = 1;
     if (e.key === 'ArrowLeft' && direction !== 1) nextDirection = -1;
     if (e.key === 'ArrowUp' && direction !== GRID_SIZE) nextDirection = -GRID_SIZE;
     if (e.key === 'ArrowDown' && direction !== -GRID_SIZE) nextDirection = GRID_SIZE;
+
     if (e.key === ' ') paused = !paused;
   });
 
