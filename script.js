@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const STORY = [
     { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 350, unlockScore: 0 },
-    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 100, unlockScore: 10 },
+    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 150, unlockScore: 10 },
     { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 120, unlockScore: 25 }
   ];
 
