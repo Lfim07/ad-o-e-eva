@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         audio.volume = 0.4;
         clearInterval(fade);
       }
-    }, 100);
+    }, 80);
   }
 
   function fadeOut(audio) {
@@ -65,11 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
         audio.pause();
         clearInterval(fade);
       }
-    }, 100);
+    }, 80);
   }
 
   function getMusicChapterByScore(score) {
-    if (score >= 25) return 2;
+    if (score >= 30) return 2;
     if (score >= 15) return 1;
     return 0;
   }
@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const FREEZE_TIME = 10000;
 
   const STORY = [
-    { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 350, unlockScore: 0 },
-    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 150, unlockScore: 15 },
-    { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 120, unlockScore: 25 }
+    { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 140, unlockScore: 0 },
+    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 100, unlockScore: 10 },
+    { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 80,  unlockScore: 25 }
   ];
 
   const GAME_OVER_MESSAGES = [
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =====================
-     LOOP
+     LOOP MAIS FLUIDO
   ===================== */
 
   function loop(time) {
@@ -209,19 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!lastTime) lastTime = time;
 
-    if (paused || frozen) {
-      lastTime = time;
-      animationId = requestAnimationFrame(loop);
-      return;
-    }
-
     const delta = time - lastTime;
     lastTime = time;
-    accumulator += delta;
 
-    while (accumulator >= speed) {
-      update();
-      accumulator -= speed;
+    if (!paused && !frozen) {
+      accumulator += delta;
+
+      if (accumulator >= speed) {
+        update();
+        accumulator = 0; // evita empilhamento e micro travadas
+      }
     }
 
     animationId = requestAnimationFrame(loop);
@@ -336,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(speedTimeout);
 
     const faster = Math.random() < 0.5;
-    speed = faster ? baseSpeed * 0.8 : baseSpeed * 1.3;
+    speed = faster ? baseSpeed * 0.7 : baseSpeed * 1.2;
 
     statusHud.textContent =
       faster ? '⚡ A serpente acelerou!' : '🐢 A serpente ficou lenta!';
@@ -371,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
       paused = false;
       lastTime = 0;
       animationId = requestAnimationFrame(loop);
-    }, 3000);
+    }, 2000);
   }
 
   function checkStoryProgress() {
