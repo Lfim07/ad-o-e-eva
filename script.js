@@ -17,21 +17,102 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(statusHud);
 
   /* =====================
+     🎵 SISTEMA DE MÚSICA
+  ===================== */
+
+  const music1 = document.getElementById("music1");
+  const music2 = document.getElementById("music2");
+  const music3 = document.getElementById("music3");
+
+  const musics = [music1, music2, music3];
+
+  let currentMusic = null;
+  let currentMusicChapter = -1;
+
+  function stopAllMusic() {
+    musics.forEach(m => {
+      if (!m) return;
+      m.pause();
+      m.currentTime = 0;
+      m.volume = 0;
+    });
+  }
+
+  function fadeIn(audio) {
+    if (!audio) return;
+
+    audio.volume = 0;
+    audio.play().catch(() => {});
+
+    const fade = setInterval(() => {
+      if (audio.volume < 0.4) {
+        audio.volume += 0.02;
+      } else {
+        audio.volume = 0.4;
+        clearInterval(fade);
+      }
+    }, 100);
+  }
+
+  function fadeOut(audio) {
+    if (!audio) return;
+
+    const fade = setInterval(() => {
+      if (audio.volume > 0.02) {
+        audio.volume -= 0.02;
+      } else {
+        audio.volume = 0;
+        audio.pause();
+        clearInterval(fade);
+      }
+    }, 100);
+  }
+
+  function getMusicChapterByScore(score) {
+    if (score >= 25) return 2;
+    if (score >= 15) return 1;
+    return 0;
+  }
+
+  function updateMusicByScore(score) {
+    const newChapter = getMusicChapterByScore(score);
+
+    if (newChapter !== currentMusicChapter) {
+      currentMusicChapter = newChapter;
+      const newMusic = musics[newChapter];
+
+      if (currentMusic) fadeOut(currentMusic);
+      currentMusic = newMusic;
+      fadeIn(currentMusic);
+    }
+  }
+
+  /* =====================
      CONFIGURAÇÕES
   ===================== */
+
   const GRID_SIZE = 20;
   const TOTAL = GRID_SIZE * GRID_SIZE;
   const FREEZE_TIME = 10000;
 
   const STORY = [
     { theme: 'eden',  title: '🌿 Éden',      text: 'Tudo é harmonia.', speed: 350, unlockScore: 0 },
-    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 150, unlockScore: 10 },
+    { theme: 'fall',  title: '🍎 Tentação', text: 'O risco cresce.',   speed: 150, unlockScore: 15 },
     { theme: 'exile', title: '🔥 Queda',    text: 'O erro cobra.',     speed: 120, unlockScore: 25 }
+  ];
+
+  const GAME_OVER_MESSAGES = [
+    "💀 A serpente caiu pela própria escolha.",
+    "🔥 O orgulho precedeu a queda.",
+    "🍂 Nem toda tentação termina bem.",
+    "⚡ Você foi rápido… mas não o suficiente.",
+    "🌑 A escuridão venceu desta vez."
   ];
 
   /* =====================
      VARIÁVEIS
   ===================== */
+
   let squares = [];
   let snake = [];
   let direction = 1;
@@ -62,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      GRID
   ===================== */
+
   function createGrid() {
     grid.innerHTML = '';
     squares = [];
@@ -76,7 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      START
   ===================== */
+
   function startGame() {
+
+    stopAllMusic();
+    currentMusic = null;
+    currentMusicChapter = -1;
 
     running = false;
 
@@ -90,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     frozen = false;
     paused = false;
-
     accumulator = 0;
     lastTime = 0;
 
@@ -108,21 +194,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     currentChapter = 0;
     applyChapter();
-
     generateFood();
 
-    running = true;
-    animationId = requestAnimationFrame(loop);
+    updateMusicByScore(score);
   }
 
   /* =====================
-     LOOP (CORRIGIDO)
+     LOOP
   ===================== */
+
   function loop(time) {
 
     if (!running) return;
 
-    // 🔥 Corrige delta gigante no primeiro frame
     if (!lastTime) lastTime = time;
 
     if (paused || frozen) {
@@ -133,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const delta = time - lastTime;
     lastTime = time;
-
     accumulator += delta;
 
     while (accumulator >= speed) {
@@ -144,9 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
     animationId = requestAnimationFrame(loop);
   }
 
-  /* =====================
-     UPDATE
-  ===================== */
   function update() {
     move();
     checkStoryProgress();
@@ -155,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      MOVIMENTO
   ===================== */
+
   function move() {
 
     direction = nextDirection;
@@ -189,9 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      COMIDA
   ===================== */
+
   function generateFood() {
 
-    // 🔥 Limpa comida anterior por segurança
     squares.forEach(c => c.classList.remove('food'));
 
     do {
@@ -208,6 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
     score++;
     scoreEl.textContent = score;
 
+    updateMusicByScore(score);
+
     if (score % 5 === 0) triggerFreeze();
 
     if (score > highScore) {
@@ -222,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      CONGELAMENTO
   ===================== */
+
   function triggerFreeze() {
 
     if (!running) return;
@@ -267,6 +351,29 @@ document.addEventListener('DOMContentLoaded', () => {
   /* =====================
      HISTÓRIA
   ===================== */
+
+  function showChapterIntro(chapter) {
+
+    running = false;
+    paused = true;
+
+    statusHud.innerHTML = `
+      <div style="font-size:18px">
+        <strong>${chapter.title}</strong><br><br>
+        ${chapter.text}<br><br>
+        Prepare-se...
+      </div>
+    `;
+
+    setTimeout(() => {
+      statusHud.textContent = "";
+      running = true;
+      paused = false;
+      lastTime = 0;
+      animationId = requestAnimationFrame(loop);
+    }, 3000);
+  }
+
   function checkStoryProgress() {
 
     if (
@@ -287,16 +394,13 @@ document.addEventListener('DOMContentLoaded', () => {
     baseSpeed = chapter.speed;
     speed = baseSpeed;
 
-    statusHud.textContent = `${chapter.title} — ${chapter.text}`;
-
-    setTimeout(() => {
-      if (running) statusHud.textContent = '';
-    }, 3000);
+    showChapterIntro(chapter);
   }
 
   /* =====================
      GAME OVER
   ===================== */
+
   function gameOver() {
 
     running = false;
@@ -306,12 +410,18 @@ document.addEventListener('DOMContentLoaded', () => {
       animationId = null;
     }
 
-    statusHud.textContent = '💀 A queda foi inevitável';
+    if (currentMusic) fadeOut(currentMusic);
+
+    const randomMessage =
+      GAME_OVER_MESSAGES[Math.floor(Math.random() * GAME_OVER_MESSAGES.length)];
+
+    statusHud.textContent = randomMessage;
   }
 
   /* =====================
      CONTROLES
   ===================== */
+
   document.addEventListener('keydown', e => {
 
     if (!running) return;
@@ -327,9 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
   pauseBtn.addEventListener('click', () => paused = !paused);
   restartBtn.addEventListener('click', startGame);
 
-  /* =====================
-     INTRO
-  ===================== */
   startIntroBtn.addEventListener('click', () => {
     intro.style.display = 'none';
     startGame();
