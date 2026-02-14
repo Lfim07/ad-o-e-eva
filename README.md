@@ -1,67 +1,173 @@
-# 🐍 Snake adão e Eva – Web
+🐍 Snake: Adão e Eva — Experiência Narrativa Interativa
 
-Um jogo clássico da cobrinha desenvolvido com **HTML, CSS e JavaScript puro**, com foco em código limpo, performance e experiência do usuário — desktop e mobile.
+Um jogo inspirado no clássico Snake, reimaginado como uma experiência narrativa progressiva, com trilha sonora dinâmica, eventos especiais e evolução de dificuldade baseada na performance do jogador.
 
----
+Desenvolvido com HTML5, CSS3 e JavaScript puro (Vanilla JS) — sem bibliotecas externas.
 
-## 🎮 Demonstração
-> Jogo executado diretamente no navegador, sem bibliotecas externas.
+🎮 Conceito
 
----
+A serpente atravessa três estágios simbólicos:
 
-## 🚀 Funcionalidades
+🌿 Éden — Harmonia, ritmo controlado
 
-- ✅ Movimento clássico da cobrinha
-- ✅ Aceleração progressiva conforme a pontuação
-- ✅ Comida com animação
-- ✅ Efeitos sonoros sincronizados
-- ✅ Ranking salvo no `localStorage`
-- ✅ Suporte total para mobile (gestos touch)
-- ✅ Temas visuais (Default / Neon / Retrô)
-- ✅ HUD flutuante com efeito glassmorphism
-- ✅ Animação de Game Over
+🍎 Tentação — Velocidade crescente e tensão
 
----
+🔥 Queda — Intensidade máxima
 
-## 🛠️ Tecnologias Utilizadas
+A cada fase:
 
-- **HTML5** — Estrutura do jogo
-- **CSS** — Estilização, temas, animações e responsividade
-- **JavaScript** — Lógica do jogo e controle de estados
+O ambiente muda
 
-> Nenhuma biblioteca externa foi utilizada.
+A velocidade aumenta
 
----
+A música evolui
 
-## 📱 Compatibilidade
+A tensão cresce
 
-- ✔ Desktop (teclado)
-- ✔ Mobile (toque / swipe)
-- ✔ Navegadores modernos (Chrome, Edge, Firefox)
+Não é apenas um jogo da cobrinha.
+É progressão narrativa baseada em desempenho.
 
----
+🚀 Funcionalidades
 
-## 🧠 Lógica do Jogo
+✅ Movimento fluido com requestAnimationFrame
 
-- O tabuleiro é um grid 20x20
-- A cobrinha é representada por um array de posições
-- A cada frame:
-  - A cabeça avança
-  - O corpo segue
-  - Colisões são verificadas
-- Ao comer a comida:
-  - Pontuação aumenta
-  - Velocidade do jogo aumenta
-  - Nova comida é gerada
-- Ao colidir:
-  - O jogo termina
-  - Ranking é atualizado
+✅ Sistema de capítulos desbloqueados por pontuação
 
----
+✅ Trilha sonora dinâmica com fade in/out automático
 
-## 🏆 Ranking
+✅ Sistema de congelamento temporário (evento especial)
 
-O maior recorde é salvo automaticamente no navegador usando:
+✅ Alteração dinâmica de velocidade
 
-```js
-localStorage.setItem('highScore', score);
+✅ HUD interativo com mensagens narrativas
+
+✅ Sistema de pausa
+
+✅ Ranking salvo no localStorage
+
+✅ Mensagens aleatórias de Game Over
+
+✅ Mudança visual de tema por fase
+
+🛠️ Tecnologias Utilizadas
+
+HTML5 — Estrutura do jogo
+
+CSS3 — Estilização, temas e transições
+
+JavaScript (Vanilla) — Lógica, controle de estados e game loop
+
+Projeto 100% JavaScript puro.
+
+⚙️ Arquitetura Técnica
+🎯 Game Loop Moderno
+
+Utiliza requestAnimationFrame com cálculo de tempo (deltaTime) para manter estabilidade independente do FPS.
+
+🧠 Controle de Estado
+
+Gerenciamento de:
+
+running
+
+paused
+
+frozen
+
+capítulo atual
+
+música ativa
+
+🎵 Sistema de Música Adaptativa
+
+3 trilhas distintas
+
+Troca automática baseada na pontuação
+
+Transições suaves com fade progressivo
+
+❄ Evento Especial
+
+A cada múltiplo de 5 pontos:
+
+A serpente pode congelar por 10 segundos
+
+A velocidade pode variar temporariamente
+
+📊 Lógica do Jogo
+
+Grid 20x20
+
+Cobra representada por array de posições
+
+Detecção de colisão com:
+
+Parede
+
+Próprio corpo
+
+Progressão automática de dificuldade
+
+Mudança de tema via atributo data-theme
+
+💾 Persistência de Dados
+
+O recorde é salvo automaticamente no navegador:
+
+localStorage.setItem('highScore', highScore);
+
+Sem banco externo.
+Sem servidor.
+Tudo roda localmente.
+
+📱 Compatibilidade
+
+✔ Desktop (teclado)
+
+✔ Navegadores modernos (Chrome, Edge, Firefox)
+
+✔ Funciona offline após carregamento
+
+🎨 Diferenciais
+
+Este projeto vai além de um clone tradicional de Snake:
+
+Narrativa integrada ao gameplay
+
+Trilha sonora reativa
+
+Eventos inesperados
+
+Mudança de atmosfera sem troca de tela
+
+Estrutura organizada para expansão futura
+
+Ideal como projeto de portfólio front-end focado em lógica, performance e experiência do usuário.
+
+🔮 Próximas Evoluções Possíveis
+
+Sistema de chefes
+
+Obstáculos dinâmicos
+
+Ranking online
+
+Modo infinito
+
+Sistema de conquistas
+
+Versão mobile otimizada com swipe
+
+Efeitos visuais com partículas
+
+👨‍💻 Autor
+
+Projeto desenvolvido como estudo avançado de:
+
+Game loop
+
+Controle de estado
+
+Performance em JavaScript
+
+Experiência narrativa interativa
